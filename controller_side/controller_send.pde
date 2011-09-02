@@ -3,7 +3,7 @@
  * length must be at least 1
  * Oh, it destroys the buffer passed in as it writes it
  */
-void N64_send(unsigned char *buffer, char length)
+void controller_send(unsigned char *buffer, char length)
 {
     // Send these bytes
     char bits;
@@ -29,7 +29,7 @@ inner_loop:
         {
             // Starting a bit, set the line low
             asm volatile (";Setting line to low");
-            N64_LOW; // 1 op, 2 cycles
+            CONTROLLER_LOW; // 1 op, 2 cycles
 
             asm volatile (";branching");
             if (*buffer >> 7) {
@@ -40,7 +40,7 @@ inner_loop:
                 asm volatile ("nop\nnop\nnop\nnop\nnop\n");
                 
                 asm volatile (";Setting line to high");
-                N64_HIGH;
+                CONTROLLER_HIGH;
 
                 // nop block 2
                 // we'll wait only 2us to sync up with both conditions
@@ -68,7 +68,7 @@ inner_loop:
                               "nop\n");
 
                 asm volatile (";Setting line to high");
-                N64_HIGH;
+                CONTROLLER_HIGH;
 
                 // wait for 1us
                 asm volatile ("; end of conditional branch, need to wait 1us more before next bit");
@@ -106,13 +106,13 @@ inner_loop:
     // send a single stop (1) bit
     // nop block 5
     asm volatile ("nop\nnop\nnop\nnop\n");
-    N64_LOW;
+    CONTROLLER_LOW;
     // wait 1 us, 16 cycles, then raise the line 
     // 16-2=14
     // nop block 6
     asm volatile ("nop\nnop\nnop\nnop\nnop\n"
                   "nop\nnop\nnop\nnop\nnop\n"  
                   "nop\nnop\nnop\nnop\n");
-    N64_HIGH;
+    CONTROLLER_HIGH;
 
 }

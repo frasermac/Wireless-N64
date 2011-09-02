@@ -1,20 +1,20 @@
-void N64_get()
+void controller_get()
 {
     // listen for the expected 8 bytes of data back from the controller and
-    // blast it out to the N64_raw_dump array, one bit per byte for extra speed.
-    // Afterwards, call translate_raw_data() to interpret the raw data and pack
-    // it into the N64_status struct.
+    // blast it out to the controller_raw_dump array, one bit per byte for extra speed.
+    // Afterwards, call translate_raw_dump() to interpret the raw data and pack
+    // it into the controller_status struct.
     asm volatile (";Starting to listen");
     unsigned char timeout;
     char bitcount = 32;
-    char *bitbin = N64_raw_dump;
+    char *bitbin = controller_raw_dump;
 
     // Again, using gotos here to make the assembly more predictable and
     // optimization easier (please don't kill me)
 read_loop:
     timeout = 0x3f;
     // wait for line to go low
-    while (N64_QUERY) {
+    while (CONTROLLER_QUERY) {
         if (!--timeout)
             return;
     }
@@ -27,7 +27,7 @@ read_loop:
                   "nop\nnop\nnop\nnop\nnop\n"  
                   "nop\nnop\nnop\nnop\nnop\n"  
             );
-    *bitbin = N64_QUERY;
+    *bitbin = CONTROLLER_QUERY;
     ++bitbin;
     --bitcount;
     if (bitcount == 0)
@@ -36,7 +36,7 @@ read_loop:
     // wait for line to go high again
     // it may already be high, so this should just drop through
     timeout = 0x3f;
-    while (!N64_QUERY) {
+    while (!CONTROLLER_QUERY) {
         if (!--timeout)
             return;
     }
