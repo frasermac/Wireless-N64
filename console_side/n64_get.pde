@@ -13,7 +13,7 @@
   * for the command byte, which is placed all packed into n64_command
   */
   
-void get_n64_command()
+void n64_get()
 {
     int bitcount;
     char *bitbin = n64_raw_dump;

@@ -1,6 +1,7 @@
-This code's adapted from Andrew Brown's (brilliant) N64 to Gamecube Adapter, which I understand is itself adapted from the venerable cube64 project.
+This code is adapted from Andrew Brown's (brilliant) N64 to Gamecube Adapter, which I understand is itself adapted from the venerable cube64 project.
 
 If you're looking to get lost on the internet, here are my picks of gripping dispatches from the world of N64 projects:
+
 - Cube64:
 	http://cia.vc/stats/project/navi-misc/cube64
 - Andrew Brown's Gamecube N64 Controller:

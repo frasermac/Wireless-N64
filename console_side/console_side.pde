@@ -2,37 +2,18 @@
  * HOW MUCH OF THIS CAN I TRIM DOWN AND RENAME APPROPRIATELY?
  */
 
-#include "pins_arduino.h"
-
-#define GC_PIN 2
-#define GC_PIN_DIR DDRD
-// these two macros set arduino pin 2 to input or output, which with an
-// external 1K pull-up resistor to the 3.3V rail, is like pulling it high or
-// low.  These operations translate to 1 op code, which takes 2 cycles
-#define GC_HIGH DDRD &= ~0x04
-#define GC_LOW DDRD |= 0x04
-#define GC_QUERY (PIND & 0x04)
-
 #define N64_PIN 8
 #define N64_HIGH DDRB &= ~0x01
 #define N64_LOW DDRB |= 0x01
 #define N64_QUERY (PINB & 0x01)
 
-// 8 bytes of data that we get from the controller
+// Define the struct "controller_status", which contains the data that we get from the controller
 struct {
-    // bits: 0, 0, 0, start, y, x, b, a
-    unsigned char data1;
-    // bits: 1, L, R, Z, Dup, Ddown, Dright, Dleft
-    unsigned char data2;
-    unsigned char stick_x;
-    unsigned char stick_y;
-    unsigned char cstick_x;
-    unsigned char cstick_y;
-    unsigned char left;
-    unsigned char right;
-} N64_status;
-
-char gc_raw_dump[65];           // 1 received bit per byte
+    unsigned char data1;         // Creates a char "data1" which contains bits (1 or 0) for: A, B, Z, Start, Dup, Ddown, Dleft, Dright (DR,DL,DD,DU,S,Z,B,A)
+    unsigned char data2;         // Creates a char "data2" which contains bits for: 0, 0, L, R, Cup, Cdown, Cleft, Cright (CR,CL,CD,CU,R,L,0,0)
+    char stick_x;                // Creates a char "stick_x" which contains the x position of the joystick, from -128 to 127
+    char stick_y;                // Creates a char "stick_y" which contains the y position of the joystick, from -128 to 127
+} controller_status;
 char n64_raw_dump[281];         // To hold N64 data - maximum recv is 1+2+32 bytes + 1 bit
 unsigned char n64_command;      // The command byte from the N64 gets pushed into here
 
@@ -40,34 +21,11 @@ unsigned char n64_command;      // The command byte from the N64 gets pushed int
 // maximum we'll need to send is 33, 32 for a read request and 1 CRC byte
 unsigned char n64_buffer[33];
 
-void gc_send(unsigned char *buffer, char length);
-void gc_get();
-void print_gc_status();
-void translate_raw_data();
-void gc_to_64();
-void get_n64_command();
+void n64_send(unsigned char *buffer, char length);
+void n64_get();
+void controller_to_n64();
 
 #include "crc_table.h"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void setup()
@@ -92,17 +50,14 @@ void loop()
     unsigned char data, addr;
 
     // clear out raw data buffers
-    memset(gc_raw_dump, 0, sizeof(gc_raw_dump));
     memset(n64_raw_dump, 0, sizeof(n64_raw_dump));
     
     noInterrupts();         // don't want interrupts getting in the way
-    gc_get();               // read in data and dump it to gc_raw_dump
+    controller_to_n64();    // take in controller_status and make n64_buffer_dump
     interrupts();           // end of time-sensitive code
-    translate_raw_data();   // translate the data in gc_raw_dump to n64_buffer  
-    gc_to_64();             // Now translate that data to the n64 byte string
 
     noInterrupts();
-    get_n64_command();      // Wait for incomming 64 command (this will block until the N64 sends us a command)
+    n64_get();      // Wait for incomming 64 command (this will block until the N64 sends us a command)
 
     // 0x00 is identify command
     // 0x01 is status
