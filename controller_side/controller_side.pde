@@ -67,8 +67,10 @@ void setup()
   }
 
   // Query for the controller's status to get the 0 point for the control stick
-  unsigned char command[] = {0x01};
-  N64_send(command, 1);          // Send 0x01, which means "give status" to the controller
+  unsigned char command[] = {0x40, 0x03, 0x00};
+  N64_send(command, 3);
+  //unsigned char command[] = {0x01};
+  //N64_send(command, 1);          // Send 0x01, which means "give status" to the controller
   N64_get();                     // Read in data and dump it to N64_raw_dump
   interrupts();
   translate_raw_data();  
@@ -81,13 +83,13 @@ void loop()
 
     // Command to send to the controller - The last bit is rumble, flip it to rumble
     // (yes this does need to be inside the loop, the array gets mutilated when it goes through gc_send)
-    unsigned char command[] = {0x40, 0x03, 0x00};
-    if (rumble) {
-        command[2] = 0x01;
-    }
+    unsigned char command[] = {0x01}; 
+    //if (rumble) {
+    //    command[2] = 0x01;
+    //}
 
     noInterrupts();                  // Don't want interrupts getting in the way
-    N64_send(command, 1);            // Send those 3 bytes
+    N64_send(command, 1);            // Send the initial command
     N64_get();                       // Read in data and dump it to N64_raw_dump
     interrupts();                    // End of time sensitive code
 
